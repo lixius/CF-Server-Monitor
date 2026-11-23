@@ -6,6 +6,7 @@ import { LATENCY_WINDOW, PING } from '../utils/constants'
 import { formatBillingPrice } from '../utils/server.js'
 import {
   buildCompactPingList,
+  classifyLatencyBucket,
   normalizeProbeMetricValue,
   resolveProbeNodeLabel,
   selectThreeNetNodeDefs
@@ -373,9 +374,7 @@ export function useServerCardData(props) {
       const ping = pingPoint?.value ?? null
       const loss = lossPoint?.value ?? null
       const timestamp = pingPoint?.ts ?? lossPoint?.ts ?? null
-      const hasPing = typeof ping === 'number' && Number.isFinite(ping) && ping >= 0
-      const hasLoss = typeof loss === 'number' && Number.isFinite(loss)
-      const offline = !hasPing && !hasLoss
+      const { hasPing, hasLoss, disabled, offline } = classifyLatencyBucket(ping, loss)
       const pingSummary = formatPingBucketSummary(hasPing, ping, offline)
       const lossSummary = formatLossBucketSummary(hasLoss, loss, offline)
       return {
@@ -383,10 +382,10 @@ export function useServerCardData(props) {
         loss,
         pingHeight: hasPing ? 84 : 25,
         lossHeight: hasLoss ? 84 : 25,
-        pingColor: hasPing ? getPingColor(ping) : 'var(--accent-red)',
-        lossColor: offline ? 'var(--accent-red)' : getLossColor(loss),
-        pingOpacity: hasPing ? 0.94 : 0.52,
-        lossOpacity: hasLoss ? 0.94 : (offline ? 0.52 : 0.42),
+        pingColor: hasPing ? getPingColor(ping) : (disabled ? 'var(--text-muted)' : 'var(--accent-red)'),
+        lossColor: offline ? 'var(--accent-red)' : (disabled ? 'var(--text-muted)' : getLossColor(loss)),
+        pingOpacity: hasPing ? 0.94 : (disabled ? 0.24 : 0.52),
+        lossOpacity: hasLoss ? 0.94 : (disabled ? 0.24 : (offline ? 0.52 : 0.42)),
         pingTooltip: formatBucketTooltip(timestamp, pingSummary),
         lossTooltip: formatBucketTooltip(timestamp, lossSummary)
       }

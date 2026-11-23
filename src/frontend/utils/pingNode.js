@@ -6,29 +6,30 @@ const IPV6_PATTERN = /^(?:(?:[0-9a-f]{1,4}:){1,7}[0-9a-f]{1,4}|(?:[0-9a-f]{1,4}:
 export const PING_NODE_FIELDS = ['custom_ct', 'custom_cu', 'custom_cm', 'custom_bd', 'node_1', 'node_2', 'node_3', 'node_4']
 
 export const PING_NODE_PLACEHOLDERS = Object.freeze({
-  custom_ct: 'gd-ct-v4.ip.zstaticcdn.com',
-  custom_cu: 'gd-cu-v4.ip.zstaticcdn.com',
-  custom_cm: 'gd-cm-v4.ip.zstaticcdn.com',
+  custom_ct: 'gd-ct-v6.ip.zstaticcdn.com',
+  custom_cu: 'gd-cu-v6.ip.zstaticcdn.com',
+  custom_cm: 'gd-cm-v6.ip.zstaticcdn.com',
   custom_bd: 'ip.zstaticcdn.com',
-  node_1: 'gd-ct-v6.ip.zstaticcdn.com',
-  node_2: 'gd-cu-v6.ip.zstaticcdn.com',
-  node_3: 'gd-cm-v6.ip.zstaticcdn.com',
+  node_1: 'gd-ct-v4.ip.zstaticcdn.com',
+  node_2: 'gd-cu-v4.ip.zstaticcdn.com',
+  node_3: 'gd-cm-v4.ip.zstaticcdn.com',
   node_4: 'host[:port] / [IPv6]:port'
 })
 
+// 保留 ct/cu/cm 对应 IPv6（无缝延续双栈主机原 dualstack 历史数据），node_1..3 补充三网 IPv4。
 export const DUAL_STACK_PING_NODE_PRESET = Object.freeze({
-  custom_ct: 'gd-ct-v4.ip.zstaticcdn.com',
-  custom_cu: 'gd-cu-v4.ip.zstaticcdn.com',
-  custom_cm: 'gd-cm-v4.ip.zstaticcdn.com',
-  node_1: 'gd-ct-v6.ip.zstaticcdn.com',
-  node_2: 'gd-cu-v6.ip.zstaticcdn.com',
-  node_3: 'gd-cm-v6.ip.zstaticcdn.com',
-  custom_ct_name: '电信 v4',
-  custom_cu_name: '联通 v4',
-  custom_cm_name: '移动 v4',
-  node_1_name: '电信 v6',
-  node_2_name: '联通 v6',
-  node_3_name: '移动 v6'
+  custom_ct: 'gd-ct-v6.ip.zstaticcdn.com',
+  custom_cu: 'gd-cu-v6.ip.zstaticcdn.com',
+  custom_cm: 'gd-cm-v6.ip.zstaticcdn.com',
+  node_1: 'gd-ct-v4.ip.zstaticcdn.com',
+  node_2: 'gd-cu-v4.ip.zstaticcdn.com',
+  node_3: 'gd-cm-v4.ip.zstaticcdn.com',
+  custom_ct_name: '电信 v6',
+  custom_cu_name: '联通 v6',
+  custom_cm_name: '移动 v6',
+  node_1_name: '电信 v4',
+  node_2_name: '联通 v4',
+  node_3_name: '移动 v4'
 })
 
 const isValidIpv4 = (host) => {

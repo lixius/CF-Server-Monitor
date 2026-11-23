@@ -91,6 +91,15 @@ export const selectThreeNetNodeDefs = (server, getLatencySeries = null) => {
   return unreported.slice(0, 3)
 }
 
+export const classifyLatencyBucket = (ping, loss) => {
+  const hasPing = typeof ping === 'number' && Number.isFinite(ping) && ping >= 0
+  const hasLoss = typeof loss === 'number' && Number.isFinite(loss)
+  // 历史桶为 false 表示当时该节点尚未启用，区别于探针超时或服务器离线。
+  const disabled = !hasPing && !hasLoss && (ping === false || loss === false)
+  const offline = !hasPing && !hasLoss && !disabled
+  return { hasPing, hasLoss, disabled, offline }
+}
+
 export const buildCompactPingList = (server, sysConfig = null, trans = null) => {
   const items = []
   for (const def of THREE_NET_DEFS) {

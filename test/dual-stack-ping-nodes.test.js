@@ -8,7 +8,7 @@ import { generateToken } from '../src/middleware/auth.js';
 import { AGENT_CONFIG_SCHEMA_VERSION, buildAgentConfig, describeAgentConfig } from '../src/utils/agentConfig.js';
 import { clearAllCaches } from '../src/utils/cache.js';
 import { clearSiteSettingsCache, loadSiteSettings } from '../src/utils/settings.js';
-import { buildCompactPingList, selectThreeNetNodeDefs } from '../src/frontend/utils/latencyNodes.js';
+import { buildCompactPingList, classifyLatencyBucket, selectThreeNetNodeDefs } from '../src/frontend/utils/latencyNodes.js';
 
 globalThis.WebSocketRequestResponsePair = class WebSocketRequestResponsePair {
   constructor(request, response) {
@@ -50,37 +50,64 @@ function createEmptySettingsDb() {
   };
 }
 
-test('default site settings cover both IPv4 and IPv6 three-net probe targets', async () => {
+test('default site settings cover both IPv6 (ct/cu/cm) and IPv4 (node_1..3) three-net probe targets', async () => {
   clearSiteSettingsCache();
   const settings = await loadSiteSettings(createEmptySettingsDb(), { forceRefresh: true });
 
-  assert.equal(settings.custom_ct, 'gd-ct-v4.ip.zstaticcdn.com');
-  assert.equal(settings.custom_cu, 'gd-cu-v4.ip.zstaticcdn.com');
-  assert.equal(settings.custom_cm, 'gd-cm-v4.ip.zstaticcdn.com');
-  assert.equal(settings.node_1, 'gd-ct-v6.ip.zstaticcdn.com');
-  assert.equal(settings.node_2, 'gd-cu-v6.ip.zstaticcdn.com');
-  assert.equal(settings.node_3, 'gd-cm-v6.ip.zstaticcdn.com');
-  assert.equal(settings.custom_ct_name, '电信 v4');
-  assert.equal(settings.custom_cu_name, '联通 v4');
-  assert.equal(settings.custom_cm_name, '移动 v4');
-  assert.equal(settings.node_1_name, '电信 v6');
-  assert.equal(settings.node_2_name, '联通 v6');
-  assert.equal(settings.node_3_name, '移动 v6');
+  assert.equal(settings.custom_ct, 'gd-ct-v6.ip.zstaticcdn.com');
+  assert.equal(settings.custom_cu, 'gd-cu-v6.ip.zstaticcdn.com');
+  assert.equal(settings.custom_cm, 'gd-cm-v6.ip.zstaticcdn.com');
+  assert.equal(settings.node_1, 'gd-ct-v4.ip.zstaticcdn.com');
+  assert.equal(settings.node_2, 'gd-cu-v4.ip.zstaticcdn.com');
+  assert.equal(settings.node_3, 'gd-cm-v4.ip.zstaticcdn.com');
+  assert.equal(settings.custom_ct_name, '电信 v6');
+  assert.equal(settings.custom_cu_name, '联通 v6');
+  assert.equal(settings.custom_cm_name, '移动 v6');
+  assert.equal(settings.node_1_name, '电信 v4');
+  assert.equal(settings.node_2_name, '联通 v4');
+  assert.equal(settings.node_3_name, '移动 v4');
 
   const dualStackConfig = buildAgentConfig({}, settings, AGENT_CONFIG_SCHEMA_VERSION);
-  assert.equal(dualStackConfig.custom_ct, 'gd-ct-v4.ip.zstaticcdn.com');
-  assert.equal(dualStackConfig.custom_cu, 'gd-cu-v4.ip.zstaticcdn.com');
-  assert.equal(dualStackConfig.custom_cm, 'gd-cm-v4.ip.zstaticcdn.com');
-  assert.equal(dualStackConfig.node_1, 'gd-ct-v6.ip.zstaticcdn.com');
-  assert.equal(dualStackConfig.node_2, 'gd-cu-v6.ip.zstaticcdn.com');
-  assert.equal(dualStackConfig.node_3, 'gd-cm-v6.ip.zstaticcdn.com');
+  assert.equal(dualStackConfig.custom_ct, 'gd-ct-v6.ip.zstaticcdn.com');
+  assert.equal(dualStackConfig.custom_cu, 'gd-cu-v6.ip.zstaticcdn.com');
+  assert.equal(dualStackConfig.custom_cm, 'gd-cm-v6.ip.zstaticcdn.com');
+  assert.equal(dualStackConfig.node_1, 'gd-ct-v4.ip.zstaticcdn.com');
+  assert.equal(dualStackConfig.node_2, 'gd-cu-v4.ip.zstaticcdn.com');
+  assert.equal(dualStackConfig.node_3, 'gd-cm-v4.ip.zstaticcdn.com');
 
   // IPv4-only server can explicitly disable v6 slots via '0'
-  const ipv4OnlyConfig = buildAgentConfig({ node_1: '0', node_2: '0', node_3: '0' }, settings, AGENT_CONFIG_SCHEMA_VERSION);
-  assert.equal(ipv4OnlyConfig.custom_ct, 'gd-ct-v4.ip.zstaticcdn.com');
-  assert.equal(ipv4OnlyConfig.node_1, '');
-  assert.equal(ipv4OnlyConfig.node_2, '');
-  assert.equal(ipv4OnlyConfig.node_3, '');
+  const ipv4OnlyConfig = buildAgentConfig({ custom_ct: '0', custom_cu: '0', custom_cm: '0' }, settings, AGENT_CONFIG_SCHEMA_VERSION);
+  assert.equal(ipv4OnlyConfig.custom_ct, '');
+  assert.equal(ipv4OnlyConfig.custom_cu, '');
+  assert.equal(ipv4OnlyConfig.custom_cm, '');
+  assert.equal(ipv4OnlyConfig.node_1, 'gd-ct-v4.ip.zstaticcdn.com');
+});
+
+test('classifyLatencyBucket distinguishes disabled historical buckets from offline and timeout', () => {
+  assert.deepEqual(classifyLatencyBucket(false, false), {
+    hasPing: false,
+    hasLoss: false,
+    disabled: true,
+    offline: false
+  });
+  assert.deepEqual(classifyLatencyBucket(null, null), {
+    hasPing: false,
+    hasLoss: false,
+    disabled: false,
+    offline: true
+  });
+  assert.deepEqual(classifyLatencyBucket(null, 100), {
+    hasPing: false,
+    hasLoss: true,
+    disabled: false,
+    offline: false
+  });
+  assert.deepEqual(classifyLatencyBucket(58, 0), {
+    hasPing: true,
+    hasLoss: true,
+    disabled: false,
+    offline: false
+  });
 });
 
 test('history metric aggregation averages node_1..node_4 ping and loss alongside ct/cu/cm/bd', () => {
