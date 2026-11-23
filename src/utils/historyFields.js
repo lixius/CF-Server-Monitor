@@ -57,7 +57,9 @@ const HISTORY_AGGREGATION_MAX_FIELDS = Object.freeze([
 const HISTORY_AGGREGATION_AVG_FIELDS = Object.freeze([
   'cpu', 'ram_used', 'swap_used',
   'ping_ct', 'ping_cu', 'ping_cm', 'ping_bd',
-  'loss_ct', 'loss_cu', 'loss_cm', 'loss_bd'
+  'ping_node_1', 'ping_node_2', 'ping_node_3', 'ping_node_4',
+  'loss_ct', 'loss_cu', 'loss_cm', 'loss_bd',
+  'loss_node_1', 'loss_node_2', 'loss_node_3', 'loss_node_4'
 ]);
 
 export const HISTORY_METRIC_AGGREGATION_POLICY = Object.freeze({

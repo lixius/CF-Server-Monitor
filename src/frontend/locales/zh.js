@@ -399,6 +399,7 @@ export default {
   dockerVersionTip: 'Docker 镜像标签（tag），默认 latest',
   ghProxyPlaceholder: '海外直连即可',
   pingNodes: 'Ping节点',
+  fillDualStackPingNodes: '一键填充三网双栈 (v4 + v6)',
   customCt: '电信',
   customCu: '联通',
   customCm: '移动',

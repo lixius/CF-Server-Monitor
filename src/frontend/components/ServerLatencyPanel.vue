@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showThreeNetDetails && hasThreeNetDetails" :class="['three-net-panel', { 'three-net-panel-ring': variant === 'ring' }]">
+  <div v-if="showThreeNetDetails && hasThreeNetDetails" :class="['three-net-panel', { 'three-net-panel-ring': variant === 'ring', 'three-net-panel-multi': threeNetDetails.length > 3 }]">
     <div class="three-net-columns">
       <div class="three-net-column" aria-label="Ping">
         <div class="three-net-row" v-for="row in threeNetDetails" :key="'ping-' + row.key">
@@ -40,13 +40,13 @@
   </div>
   <div v-else-if="hasPingData" :class="variant === 'ring' ? 'server-card-ping-row' : 'ping-panel'">
     <template v-if="variant === 'ring'">
-      <span class="server-card-ping-chip" v-for="p in pingList.filter(x => x.value !== 0).slice(0, 4)" :key="p.label">
+      <span class="server-card-ping-chip" v-for="p in pingList" :key="p.key || p.label">
         <span class="server-card-ping-label">{{ p.label }}</span>
         <span class="server-card-ping-val" :style="{ color: getPingColor(p.value) }">{{ isPingValid(p.value) ? p.value + 'ms' : timeoutText }}</span>
       </span>
     </template>
     <template v-else>
-      <div class="ping-item" v-for="p in pingList.filter(x => x.value !== 0).slice(0, 4)" :key="p.label">
+      <div class="ping-item" v-for="p in pingList" :key="p.key || p.label">
         <span class="ping-label">{{ p.label }}</span>
         <span class="ping-value" :style="{ color: getPingColor(p.value) }">{{ !isPingValid(p.value) ? timeoutText : p.value + 'ms' }}</span>
       </div>

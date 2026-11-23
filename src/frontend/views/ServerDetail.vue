@@ -500,7 +500,19 @@ const PING_FIELD_DEFS = [
   { field: 'ping_node_3', lossField: 'loss_node_3', labelKey: 'node3', className: 'ping-node-3', datasetIndex: 6 },
   { field: 'ping_node_4', lossField: 'loss_node_4', labelKey: 'node4', className: 'ping-node-4', datasetIndex: 7 }
 ]
-const pingLabel = (key) => String(appConfig?.[key.startsWith('node_') ? `${key}_name` : `custom_${key}_name`] || trans.value[`ping${key.toUpperCase().charAt(0)}${key.slice(1)}`] || key.toUpperCase())
+const getInjectedRuntimeConfig = () => {
+  if (!appConfig) return null
+  if (Array.isArray(appConfig.site_configs) && appConfig.site_configs[apiIndex.value]) {
+    return appConfig.site_configs[apiIndex.value]
+  }
+  return apiIndex.value === 0 ? appConfig : null
+}
+
+const pingLabel = (key) => {
+  const siteConfig = getInjectedRuntimeConfig() || appConfig
+  const nameKey = key.startsWith('node_') ? `${key}_name` : `custom_${key}_name`
+  return String(siteConfig?.[nameKey] || trans.value[`ping${key.toUpperCase().charAt(0)}${key.slice(1)}`] || key.toUpperCase())
+}
 
 const DISK_IO_FIELDS = ['read_bps', 'write_bps', 'read_iops', 'write_iops', 'await_ms', 'util']
 const EMPTY_DISK_IO = Object.freeze(Object.fromEntries(DISK_IO_FIELDS.map(field => [field, 0])))
@@ -1873,14 +1885,6 @@ const handleLiveMessage = (msg) => {
   for (const update of matchedUpdates) {
     replayReportUpdate(update, { messageTs })
   }
-}
-
-const getInjectedRuntimeConfig = () => {
-  if (!appConfig) return null
-  if (Array.isArray(appConfig.site_configs) && appConfig.site_configs[apiIndex.value]) {
-    return appConfig.site_configs[apiIndex.value]
-  }
-  return apiIndex.value === 0 ? appConfig : null
 }
 
 const loadThemeOptionsFromConfig = async () => {

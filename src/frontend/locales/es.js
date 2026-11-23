@@ -399,6 +399,7 @@ export default {
   dockerVersionTip: 'Tag de la imagen Docker; por defecto, latest',
   ghProxyPlaceholder: 'Directo',
   pingNodes: 'Nodos de Ping',
+  fillDualStackPingNodes: 'Rellenar doble pila (v4 + v6)',
   customCt: 'Telecom',
   customCu: 'Unicom',
   customCm: 'Mobile',

@@ -399,6 +399,7 @@ export default {
   dockerVersionTip: 'Docker イメージタグ。デフォルトは latest',
   ghProxyPlaceholder: '直接接続',
   pingNodes: 'Ping ノード',
+  fillDualStackPingNodes: 'デュアルスタック (v4 + v6) を一括入力',
   customCt: '電信',
   customCu: '聯通',
   customCm: '移動',

@@ -11,7 +11,7 @@ import { clearResourceAlertState, isSmtpNotificationTarget, sendNotification } f
 import { getNotificationMessages } from '../services/notificationMessages.js';
 import { HISTORY_PARTITION_PICK_SQL, insertServerWithPartition } from '../database/indexOptimization.js';
 import { isValidTrafficCorrection, normalizeConnectionMode, normalizePingMode, normalizeWssReportInterval, validateAgentConfigInput, validatePingNode, validateNetworkInterfaces } from '../utils/agentConfig.js';
-import { scheduleAgentConfigChanged, scheduleAgentReportModeChanged } from '../utils/agentConfigNotify.js';
+import { scheduleAgentConfigChanged, scheduleAgentReportModeChanged, scheduleAllAgentsConfigChanged } from '../utils/agentConfigNotify.js';
 import { detectBillingCycle, detectCurrencySymbol, normalizeBillingCycle, normalizeCurrency, normalizePrice, renewExpireDateIfNeeded } from '../utils/serverBilling.js';
 import { THEME_PREVIEW_AUTH_TTL_SECONDS } from '../utils/config.js';
 
@@ -1047,6 +1047,10 @@ export async function handleAdminAPI(request, env, sys, loadFullSettings = null,
           }
         }
       }
+      const globalPingNodesChanged = PING_NODE_FIELDS.some(
+        field => Object.prototype.hasOwnProperty.call(siteOptions, field) &&
+          String(siteOptions[field] ?? '') !== String(sys?.[field] ?? '')
+      );
       await saveSiteOptions(env.DB, siteOptions);
       // 保存设置后非致命补列：确保 servers 表的告警相关列存在，避免启用月流量阈值后
       // 告警状态因缺列无法持久化而重复发送通知。设置已保存成功，补列失败不回滚、不报错。
@@ -1067,6 +1071,8 @@ export async function handleAdminAPI(request, env, sys, loadFullSettings = null,
         settings.wss_report_hours !== undefined
       )) {
         scheduleAgentReportModeChanged(env, ctx);
+      } else if (globalPingNodesChanged) {
+        scheduleAllAgentsConfigChanged(env, ctx);
       }
       return createSuccessResponse({
         success: true,
@@ -1419,8 +1425,17 @@ export async function handleAdminAPI(request, env, sys, loadFullSettings = null,
         !Array.isArray(importedSite) &&
         ('wss_report_enabled' in importedSite || 'wss_report_hours' in importedSite)
       );
+      const pingNodesImported = Boolean(
+        importedSite &&
+        typeof importedSite === 'object' &&
+        !Array.isArray(importedSite) &&
+        PING_NODE_FIELDS.some(field => field in importedSite)
+      );
       if (settingsResult.imported && reportModeChanged) {
         scheduleAgentReportModeChanged(env, ctx);
+      }
+      if (settingsResult.imported && pingNodesImported && isWssReportEnabled(sys)) {
+        scheduleAllAgentsConfigChanged(env, ctx);
       }
 
       let message = 'noServersImported';

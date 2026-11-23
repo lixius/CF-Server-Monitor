@@ -1523,8 +1523,9 @@ body::before {
 /* Ping row — ring card */
 .server-card-ping-row {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 8px;
+    gap: 6px 10px;
     margin-top: 12px;
     justify-content: space-between;
 }
@@ -1639,8 +1640,9 @@ body::before {
    -------------------------------------------------------------------------- */
 .ping-panel {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-around;
-    gap: 4px;
+    gap: 6px 8px;
     padding: 8px;
     background: var(--bg-secondary);
     border-radius: 4px;
@@ -1691,6 +1693,10 @@ body::before {
     min-width: 0;
     flex-direction: column;
     gap: 7px;
+}
+
+.three-net-panel-multi .three-net-column {
+    gap: 5px;
 }
 
 .three-net-row {
@@ -2339,6 +2345,13 @@ body::before {
 
 .ping-node-item .text-red {
     margin-bottom: 0;
+}
+
+.ping-preset-btn {
+    margin-left: auto;
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 500;
 }
 
 .section-title {

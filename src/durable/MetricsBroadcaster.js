@@ -1027,6 +1027,51 @@ export class MetricsBroadcaster {
       });
     }
 
+    if (body?.globalConfigChanged === true) {
+      clearServerDetailCache();
+      this.agentServerDetails.clear();
+      const settings = await loadSiteSettings(this.env.DB, { forceRefresh: true });
+      const schemasByServer = new Map();
+
+      for (const ws of this._getAgentReportWebSockets()) {
+        const attachment = ws.deserializeAttachment() || {};
+        if (attachment.kind !== AGENT_REPORT_KIND || !attachment.authenticated) continue;
+        const connectedServerId = String(attachment.serverId || '').trim();
+        const schemaVersion = normalizeAgentConfigSchemaVersion(attachment.configSchema);
+        if (!this._isValidServerId(connectedServerId) || !schemaVersion) continue;
+        if (!schemasByServer.has(connectedServerId)) {
+          schemasByServer.set(connectedServerId, new Set());
+        }
+        schemasByServer.get(connectedServerId).add(schemaVersion);
+      }
+
+      let matched = 0;
+      let delivered = 0;
+      for (const [connectedServerId, schemas] of schemasByServer) {
+        const serverDetail = await this._getAgentServerDetail(connectedServerId, true);
+        if (!serverDetail) continue;
+        const descriptors = new Map();
+        for (const schemaVersion of schemas) {
+          descriptors.set(schemaVersion, await describeAgentConfig(serverDetail, settings, schemaVersion));
+        }
+        const pushResult = this._pushAgentConfigFrame(connectedServerId, descriptors);
+        matched += pushResult.matched;
+        delivered += pushResult.delivered;
+      }
+
+      return new Response(JSON.stringify({
+        ok: true,
+        servers: schemasByServer.size,
+        matched,
+        delivered
+      }), {
+        headers: {
+          'Cache-Control': 'no-store',
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
     const serverId = String(body?.serverId || '').trim();
     if (!this._isValidServerId(serverId)) {
       return new Response(JSON.stringify({ error: 'invalid serverId' }), {

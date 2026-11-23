@@ -399,6 +399,7 @@ export default {
   dockerVersionTip: 'Docker 映像標籤（tag），預設 latest',
   ghProxyPlaceholder: '海外直連即可',
   pingNodes: 'Ping 節點',
+  fillDualStackPingNodes: '一鍵填入三網雙棧 (v4 + v6)',
   customCt: '電信',
   customCu: '聯通',
   customCm: '移動',

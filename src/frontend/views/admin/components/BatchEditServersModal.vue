@@ -120,19 +120,19 @@
         <div class="batch-edit-section">
           <div class="section-subtitle">{{ trans.pingNodes }}</div>
           <BatchEditField :enabled="enabled.custom_ct" :label="settings.custom_ct_name || trans.customCt" @toggle="toggleField('custom_ct', $event)">
-            <input type="text" v-model.trim="form.custom_ct" class="form-input" :disabled="!enabled.custom_ct" :placeholder="settings.custom_ct || 'gd-ct-dualstack.ip.zstaticcdn.com'">
+            <input type="text" v-model.trim="form.custom_ct" class="form-input" :disabled="!enabled.custom_ct" :placeholder="settings.custom_ct || PING_NODE_PLACEHOLDERS.custom_ct">
           </BatchEditField>
           <BatchEditField :enabled="enabled.custom_cu" :label="settings.custom_cu_name || trans.customCu" @toggle="toggleField('custom_cu', $event)">
-            <input type="text" v-model.trim="form.custom_cu" class="form-input" :disabled="!enabled.custom_cu" :placeholder="settings.custom_cu || 'gd-cu-dualstack.ip.zstaticcdn.com'">
+            <input type="text" v-model.trim="form.custom_cu" class="form-input" :disabled="!enabled.custom_cu" :placeholder="settings.custom_cu || PING_NODE_PLACEHOLDERS.custom_cu">
           </BatchEditField>
           <BatchEditField :enabled="enabled.custom_cm" :label="settings.custom_cm_name || trans.customCm" @toggle="toggleField('custom_cm', $event)">
-            <input type="text" v-model.trim="form.custom_cm" class="form-input" :disabled="!enabled.custom_cm" :placeholder="settings.custom_cm || 'gd-cm-dualstack.ip.zstaticcdn.com'">
+            <input type="text" v-model.trim="form.custom_cm" class="form-input" :disabled="!enabled.custom_cm" :placeholder="settings.custom_cm || PING_NODE_PLACEHOLDERS.custom_cm">
           </BatchEditField>
           <BatchEditField :enabled="enabled.custom_bd" :label="settings.custom_bd_name || trans.customBd" @toggle="toggleField('custom_bd', $event)">
-            <input type="text" v-model.trim="form.custom_bd" class="form-input" :disabled="!enabled.custom_bd" :placeholder="settings.custom_bd || 'ip.zstaticcdn.com'">
+            <input type="text" v-model.trim="form.custom_bd" class="form-input" :disabled="!enabled.custom_bd" :placeholder="settings.custom_bd || PING_NODE_PLACEHOLDERS.custom_bd">
           </BatchEditField>
           <BatchEditField v-for="(field, index) in ['node_1', 'node_2', 'node_3', 'node_4']" :key="field" :enabled="enabled[field]" :label="settings[`${field}_name`] || `Node ${index + 1}`" @toggle="toggleField(field, $event)">
-            <input type="text" v-model.trim="form[field]" class="form-input" :disabled="!enabled[field]" :placeholder="settings[field] || 'host[:port] / [IPv6]:port'">
+            <input type="text" v-model.trim="form[field]" class="form-input" :disabled="!enabled[field]" :placeholder="settings[field] || PING_NODE_PLACEHOLDERS[field]">
           </BatchEditField>
         </div>
 
@@ -171,6 +171,7 @@
 import { computed } from 'vue'
 import BatchEditField from './BatchEditField.vue'
 import { currentLang } from '../../../utils/i18n.js'
+import { PING_NODE_PLACEHOLDERS } from '../../../utils/pingNode.js'
 import { BILLING_CYCLES, CURRENCY_OPTIONS, getLocalizedOptionField } from '../../../utils/server.js'
 
 const form = defineModel('form', { type: Object, required: true })

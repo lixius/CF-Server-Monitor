@@ -23,6 +23,18 @@ export async function notifyAgentReportModeChanged(env) {
   });
 }
 
+export async function notifyAllAgentsConfigChanged(env) {
+  if (!env?.METRICS_BROADCASTER) return null;
+
+  const id = env.METRICS_BROADCASTER.idFromName('global');
+  const stub = env.METRICS_BROADCASTER.get(id);
+  return stub.fetch('http://internal/agent-config-changed', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ globalConfigChanged: true })
+  });
+}
+
 export function scheduleAgentConfigChanged(env, ctx, serverId) {
   const promise = notifyAgentConfigChanged(env, serverId).catch(e => {
     console.warn('[agent-config] notify change failed:', e?.message || e);
@@ -39,6 +51,19 @@ export function scheduleAgentConfigChanged(env, ctx, serverId) {
 export function scheduleAgentReportModeChanged(env, ctx) {
   const promise = notifyAgentReportModeChanged(env).catch(e => {
     console.warn('[agent-config] notify report mode change failed:', e?.message || e);
+    return null;
+  });
+
+  if (ctx && typeof ctx.waitUntil === 'function') {
+    ctx.waitUntil(promise);
+  }
+
+  return promise;
+}
+
+export function scheduleAllAgentsConfigChanged(env, ctx) {
+  const promise = notifyAllAgentsConfigChanged(env).catch(e => {
+    console.warn('[agent-config] notify global change failed:', e?.message || e);
     return null;
   });
 

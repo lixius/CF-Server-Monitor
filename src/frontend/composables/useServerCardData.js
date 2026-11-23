@@ -4,6 +4,12 @@ import { getPublicAssetUrl } from '../utils/config'
 import { currentLang, useTranslation } from '../utils/i18n'
 import { LATENCY_WINDOW, PING } from '../utils/constants'
 import { formatBillingPrice } from '../utils/server.js'
+import {
+  buildCompactPingList,
+  normalizeProbeMetricValue,
+  resolveProbeNodeLabel,
+  selectThreeNetNodeDefs
+} from '../utils/latencyNodes.js'
 
 export const DEFAULT_SERVER_CARD_CONFIG = {
   show_price: true,
@@ -17,31 +23,12 @@ export const DEFAULT_SERVER_CARD_CONFIG = {
   display_mode: 'bar'
 }
 
-// 首页三网面板的候选节点，按展示优先级排列；loss 末条为 false（后台设为 0）时跳过。
-const THREE_NET_DEFS = [
-  { key: 'ct', pingField: 'ping_ct', lossField: 'loss_ct', nameKey: 'custom_ct_name', labelKey: 'pingCt', fallbackLabel: 'CT' },
-  { key: 'cu', pingField: 'ping_cu', lossField: 'loss_cu', nameKey: 'custom_cu_name', labelKey: 'pingCu', fallbackLabel: 'CU' },
-  { key: 'cm', pingField: 'ping_cm', lossField: 'loss_cm', nameKey: 'custom_cm_name', labelKey: 'pingCm', fallbackLabel: 'CM' },
-  { key: 'bd', pingField: 'ping_bd', lossField: 'loss_bd', nameKey: 'custom_bd_name', labelKey: 'pingBd', fallbackLabel: 'BGP' },
-  { key: 'node_1', pingField: 'ping_node_1', lossField: 'loss_node_1', nameKey: 'node_1_name', labelKey: null, fallbackLabel: 'Node 1' },
-  { key: 'node_2', pingField: 'ping_node_2', lossField: 'loss_node_2', nameKey: 'node_2_name', labelKey: null, fallbackLabel: 'Node 2' },
-  { key: 'node_3', pingField: 'ping_node_3', lossField: 'loss_node_3', nameKey: 'node_3_name', labelKey: null, fallbackLabel: 'Node 3' },
-  { key: 'node_4', pingField: 'ping_node_4', lossField: 'loss_node_4', nameKey: 'node_4_name', labelKey: null, fallbackLabel: 'Node 4' }
-]
-
 const DEFAULT_THREE_NET_POINT_COUNT = LATENCY_WINDOW.POINTS
 
 const normalizeLatencyTimestamp = (value, fallback = 0) => {
   const timestamp = Number(value)
   if (!Number.isFinite(timestamp) || timestamp <= 0) return fallback
   return timestamp < 10000000000 ? timestamp * 1000 : timestamp
-}
-
-const normalizeProbeMetricValue = (value) => {
-  if (value === false || value === 'false') return false
-  if (value === null || value === undefined || value === '') return null
-  const number = Number(value)
-  return Number.isFinite(number) ? number : null
 }
 
 const formatPercentValue = (value) => {
@@ -375,23 +362,8 @@ export function useServerCardData(props) {
     return Math.max(pingCount, lossCount, getLatencyWindowConfigPointCount())
   }
 
-  // 判定“后台把该节点设成了 0（不使用该节点）”：优先用实时上报的 loss 标量（秒级生效），
-  // 缺失时回退到 loss 窗口的最后一条（最多滞后一个缓存周期）。只认 false，数值 0 是合法的 0% 丢包。
-  const isDisabledByLatestLoss = (key) => {
-    const realtime = normalizeProbeMetricValue(props.server[`loss_${key}`])
-    if (realtime === false) return true
-    if (realtime !== null) return false
-
-    const loss = Array.isArray(props.server.loss) ? props.server.loss : []
-    if (loss.length === 0) return false
-    const last = loss[loss.length - 1]
-    if (!last || typeof last !== 'object') return false
-    return normalizeProbeMetricValue(last[key]) === false
-  }
-
   const buildThreeNetRow = (def) => {
-    const customName = props.sysConfig?.[def.nameKey]
-    const label = String(customName || trans.value[def.labelKey] || def.fallbackLabel)
+    const label = resolveProbeNodeLabel(def, props.sysConfig, trans.value)
     const pingSeries = getLatencySeries('ping', def.key)
     const lossSeries = getLatencySeries('loss', def.key)
     const pointCount = Math.max(pingSeries.length, lossSeries.length, getLatencyWindowPointCount())
@@ -434,28 +406,13 @@ export function useServerCardData(props) {
     }
   }
 
-  const threeNetDetails = computed(() => {
-    const enabled = []
-    const disabled = []
-    for (const def of THREE_NET_DEFS) {
-      (isDisabledByLatestLoss(def.key) ? disabled : enabled).push(def)
-    }
-    // 启用的节点优先且保持原顺序；不足 3 个时用禁用节点按原顺序补位
-    return [...enabled, ...disabled].slice(0, 3).map(buildThreeNetRow)
-  })
+  const threeNetDetails = computed(() =>
+    selectThreeNetNodeDefs(props.server, getLatencySeries).map(buildThreeNetRow)
+  )
 
   const hasThreeNetDetails = computed(() => threeNetDetails.value.length > 0)
 
-  const pingList = computed(() => [
-    { label: 'CT', value: props.server.ping_ct },
-    { label: 'CU', value: props.server.ping_cu },
-    { label: 'CM', value: props.server.ping_cm },
-    { label: 'BGP', value: props.server.ping_bd },
-    { label: props.server.node_1_name || 'Node 1', value: props.server.ping_node_1 },
-    { label: props.server.node_2_name || 'Node 2', value: props.server.ping_node_2 },
-    { label: props.server.node_3_name || 'Node 3', value: props.server.ping_node_3 },
-    { label: props.server.node_4_name || 'Node 4', value: props.server.ping_node_4 }
-  ].filter(ping => !isPingDisabled(ping.value)))
+  const pingList = computed(() => buildCompactPingList(props.server, props.sysConfig, trans.value))
 
   const hasPingData = computed(() => pingList.value.length > 0)
 

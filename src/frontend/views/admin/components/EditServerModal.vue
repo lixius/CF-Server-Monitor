@@ -175,7 +175,7 @@
             {{ settings.custom_ct_name || trans.customCt }}
             <HelpTooltip :text="trans.pingNodeTip" />
           </label>
-          <input type="text" name="edit_custom_ct" autocomplete="off" v-model.trim="editForm.custom_ct" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_ct }]" :placeholder="settings.custom_ct || 'gd-ct-dualstack.ip.zstaticcdn.com'">
+          <input type="text" name="edit_custom_ct" autocomplete="off" v-model.trim="editForm.custom_ct" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_ct }]" :placeholder="settings.custom_ct || PING_NODE_PLACEHOLDERS.custom_ct">
           <p v-if="pingNodeErrors.custom_ct" class="text-red text-sm mt-1">{{ pingNodeErrors.custom_ct }}</p>
         </div>
         <div class="form-group flex-1">
@@ -183,7 +183,7 @@
             {{ settings.custom_cu_name || trans.customCu }}
             <HelpTooltip :text="trans.pingNodeTip" />
           </label>
-          <input type="text" name="edit_custom_cu" autocomplete="off" v-model.trim="editForm.custom_cu" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_cu }]" :placeholder="settings.custom_cu || 'gd-cu-dualstack.ip.zstaticcdn.com'">
+          <input type="text" name="edit_custom_cu" autocomplete="off" v-model.trim="editForm.custom_cu" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_cu }]" :placeholder="settings.custom_cu || PING_NODE_PLACEHOLDERS.custom_cu">
           <p v-if="pingNodeErrors.custom_cu" class="text-red text-sm mt-1">{{ pingNodeErrors.custom_cu }}</p>
         </div>
       </div>
@@ -193,7 +193,7 @@
             {{ settings.custom_cm_name || trans.customCm }}
             <HelpTooltip :text="trans.pingNodeTip" />
           </label>
-          <input type="text" name="edit_custom_cm" autocomplete="off" v-model.trim="editForm.custom_cm" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_cm }]" :placeholder="settings.custom_cm || 'gd-cm-dualstack.ip.zstaticcdn.com'">
+          <input type="text" name="edit_custom_cm" autocomplete="off" v-model.trim="editForm.custom_cm" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_cm }]" :placeholder="settings.custom_cm || PING_NODE_PLACEHOLDERS.custom_cm">
           <p v-if="pingNodeErrors.custom_cm" class="text-red text-sm mt-1">{{ pingNodeErrors.custom_cm }}</p>
         </div>
         <div class="form-group flex-1">
@@ -201,7 +201,7 @@
             {{ settings.custom_bd_name || trans.customBd }}
             <HelpTooltip :text="trans.pingNodeTip" />
           </label>
-          <input type="text" name="edit_custom_bd" autocomplete="off" v-model.trim="editForm.custom_bd" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_bd }]" :placeholder="settings.custom_bd || 'ip.zstaticcdn.com'">
+          <input type="text" name="edit_custom_bd" autocomplete="off" v-model.trim="editForm.custom_bd" :class="['form-input', { 'input-invalid': pingNodeErrors.custom_bd }]" :placeholder="settings.custom_bd || PING_NODE_PLACEHOLDERS.custom_bd">
           <p v-if="pingNodeErrors.custom_bd" class="text-red text-sm mt-1">{{ pingNodeErrors.custom_bd }}</p>
         </div>
       </div>
@@ -211,7 +211,7 @@
             {{ settings[`${field}_name`] || `Node ${index + 1}` }}
             <HelpTooltip :text="trans.pingNodeTip" />
           </label>
-          <input type="text" :name="`edit_${field}`" autocomplete="off" v-model.trim="editForm[field]" :class="['form-input', { 'input-invalid': pingNodeErrors[field] }]" :placeholder="settings[field] || 'host[:port] / [IPv6]:port'">
+          <input type="text" :name="`edit_${field}`" autocomplete="off" v-model.trim="editForm[field]" :class="['form-input', { 'input-invalid': pingNodeErrors[field] }]" :placeholder="settings[field] || PING_NODE_PLACEHOLDERS[field]">
           <p v-if="pingNodeErrors[field]" class="text-red text-sm mt-1">{{ pingNodeErrors[field] }}</p>
         </div>
       </div>
@@ -221,7 +221,7 @@
             {{ settings[`${field}_name`] || `Node ${index + 3}` }}
             <HelpTooltip :text="trans.pingNodeTip" />
           </label>
-          <input type="text" :name="`edit_${field}`" autocomplete="off" v-model.trim="editForm[field]" :class="['form-input', { 'input-invalid': pingNodeErrors[field] }]" :placeholder="settings[field] || 'host[:port] / [IPv6]:port'">
+          <input type="text" :name="`edit_${field}`" autocomplete="off" v-model.trim="editForm[field]" :class="['form-input', { 'input-invalid': pingNodeErrors[field] }]" :placeholder="settings[field] || PING_NODE_PLACEHOLDERS[field]">
           <p v-if="pingNodeErrors[field]" class="text-red text-sm mt-1">{{ pingNodeErrors[field] }}</p>
         </div>
       </div>
@@ -273,7 +273,7 @@
 <script setup>
 import { computed, watch } from 'vue'
 import HelpTooltip from '../../../components/HelpTooltip.vue'
-import { PING_NODE_FIELDS, validatePingNode } from '../../../utils/pingNode.js'
+import { PING_NODE_FIELDS, PING_NODE_PLACEHOLDERS, validatePingNode } from '../../../utils/pingNode.js'
 import { currentLang } from '../../../utils/i18n.js'
 import { BILLING_CYCLES, CURRENCY_OPTIONS, getLocalizedOptionField, normalizePrice, renewExpireDateIfNeeded } from '../../../utils/server.js'
 
